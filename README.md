@@ -194,8 +194,7 @@ Representative examples:
 
 More details are available in:
 
-`docs/gradcam_iobb_summary.md`
-
+[Grad-CAM / IoBB Summary](docs/gradcam_iobb_summary.md)
 ---
 
 ## Serving
