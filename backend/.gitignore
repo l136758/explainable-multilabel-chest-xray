@@ -1,0 +1,7 @@
+venv/
+model/*.pth
+__pycache__/
+Data_Entry_2017.csv.zip
+test.jpg
+find_images.py
+notes.txt
