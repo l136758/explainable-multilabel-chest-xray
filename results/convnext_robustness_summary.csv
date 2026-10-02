@@ -1,0 +1,10 @@
+Analysis,Subgroup,Images,Macro AUROC,Classes Evaluated,Notes
+Sex,Female,1816,0.8165,14,
+Sex,Male,2088,0.8138,14,
+Age,0-17,174,0.811,13,Small subgroup; 13/14 classes evaluable
+Age,18-39,916,0.8249,14,
+Age,40-59,1772,0.8164,14,
+Age,60-79,988,0.7945,14,
+Age,80+,54,0.7235,13,Very small subgroup; interpret cautiously
+View Position,AP,1641,0.7989,14,
+View Position,PA,2263,0.8084,14,
