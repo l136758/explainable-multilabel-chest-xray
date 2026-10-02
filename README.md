@@ -4,7 +4,7 @@
 
 **ConvNeXt-Tiny · Multi-Label Classification · Grad-CAM · IoBB Localization**
 
-Samsung Innovation Campus AI Capstone Project — **Team Core, Group 11**
+Samsung Innovation Campus AI Capstone Project — **Team Core**
 
 An end-to-end research prototype for predicting 14 thoracic findings from chest X-rays and explaining selected predictions with class-specific Grad-CAM heatmaps.
 
