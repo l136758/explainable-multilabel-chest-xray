@@ -1,0 +1,26 @@
+[
+  {
+    "pathology": "Cardiomegaly",
+    "image": "00014706_007.png",
+    "iobb": 0.916202,
+    "sample_level": "strong",
+    "heatmap_threshold": 0.9,
+    "saved_file": "gradcam_cardiomegaly_00014706_007.png"
+  },
+  {
+    "pathology": "Effusion",
+    "image": "00028974_016.png",
+    "iobb": 0.419026,
+    "sample_level": "moderate",
+    "heatmap_threshold": 0.9,
+    "saved_file": "gradcam_effusion_00028974_016.png"
+  },
+  {
+    "pathology": "Nodule",
+    "image": "00015141_002.png",
+    "iobb": 0.059788,
+    "sample_level": "weak",
+    "heatmap_threshold": 0.9,
+    "saved_file": "gradcam_nodule_00015141_002.png"
+  }
+]
