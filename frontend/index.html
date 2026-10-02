@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chest X-Ray AI | Team Core</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="landing-page">
+
+    <header class="site-header">
+        <a href="index.html" class="brand">
+            <span class="brand-mark">C</span>
+            <div>
+                <span class="brand-name">CORE</span>
+                <span class="brand-subtitle">Explainable AI</span>
+            </div>
+        </a>
+
+        <span class="prototype-badge">Research Prototype</span>
+    </header>
+
+    <main class="landing-main">
+        <section class="hero">
+
+            <div class="hero-content">
+                <p class="eyebrow">EXPLAINABLE MEDICAL IMAGING AI</p>
+
+                <h1>
+                    Chest X-Ray Analysis,
+                    <span>made explainable.</span>
+                </h1>
+
+                <p class="hero-description">
+                    Explore model-generated chest X-ray findings together with
+                    visual explanations that highlight the image regions that
+                    influenced each prediction.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="analyze.html" class="primary-button">
+                        Start Analysis
+                        <span aria-hidden="true">→</span>
+                    </a>
+                </div>
+
+                <p class="hero-disclaimer">
+                    For research and educational use only.
+                    This prototype is not validated for clinical diagnosis.
+                </p>
+            </div>
+
+            <div class="hero-visual" aria-hidden="true">
+                <div class="scan-card">
+
+                    <div class="scan-card-top">
+                        <span>Chest X-Ray</span>
+                        <span class="scan-status-dot"></span>
+                    </div>
+
+                    <div class="scan-placeholder">
+                        <div class="lung lung-left"></div>
+                        <div class="lung lung-right"></div>
+                        <div class="scan-focus focus-one"></div>
+                        <div class="scan-focus focus-two"></div>
+                    </div>
+
+                    <div class="scan-card-footer">
+                        <div>
+                            <span class="mini-label">Analysis</span>
+                            <strong>Explainable</strong>
+                        </div>
+
+                        <div>
+                            <span class="mini-label">Findings</span>
+                            <strong>14 classes</strong>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+        <section class="feature-strip">
+            <article>
+                <span class="feature-number">01</span>
+                <div>
+                    <h2>Multi-label analysis</h2>
+                    <p>Reviews model scores across 14 chest pathology classes.</p>
+                </div>
+            </article>
+
+            <article>
+                <span class="feature-number">02</span>
+                <div>
+                    <h2>Visual explanation</h2>
+                    <p>Grad-CAM helps show which regions influenced a selected prediction.</p>
+                </div>
+            </article>
+
+            <article>
+                <span class="feature-number">03</span>
+                <div>
+                    <h2>Transparent results</h2>
+                    <p>Results are presented as model scores rather than confirmed diagnoses.</p>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <span>Samsung Innovation Campus · Misk</span>
+        <span>Team Core · Explainable Multi-Label Chest X-Ray System</span>
+    </footer>
+
+</body>
+</html>

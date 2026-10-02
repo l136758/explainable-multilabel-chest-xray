@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyze X-Ray | Team Core</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="analysis-page">
+
+    <header class="site-header">
+        <a href="index.html" class="brand">
+            <span class="brand-mark">C</span>
+            <div>
+                <span class="brand-name">CORE</span>
+                <span class="brand-subtitle">Explainable AI</span>
+            </div>
+        </a>
+
+        <div class="header-actions">
+            <span class="prototype-badge">Research Prototype</span>
+
+            <button
+                id="devButton"
+                class="dev-button"
+                type="button"
+                title="Developer diagnostics"
+                aria-label="Open developer diagnostics"
+            >
+                &lt;/&gt;
+            </button>
+        </div>
+    </header>
+
+    <main class="analysis-main">
+
+        <section class="analysis-heading">
+            <div>
+                <p class="eyebrow">CHEST X-RAY ANALYSIS</p>
+                <h1>Review an X-ray</h1>
+                <p>
+                    Upload a chest radiograph to review model-generated findings
+                    and their visual explanation.
+                </p>
+            </div>
+        </section>
+
+        <section class="upload-section">
+
+            <label id="uploadArea" class="upload-area" for="xrayInput">
+                <input
+                    id="xrayInput"
+                    type="file"
+                    accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                    hidden
+                >
+
+                <div class="upload-icon">↑</div>
+
+                <div class="upload-copy">
+                    <strong id="uploadTitle">Upload chest X-ray</strong>
+                    <span id="uploadSubtitle">PNG, JPG or JPEG</span>
+                </div>
+
+                <span class="upload-action">Choose file</span>
+            </label>
+
+            <button
+                id="analyzeButton"
+                class="primary-button analyze-button"
+                type="button"
+                disabled
+            >
+                Analyze X-Ray
+                <span>→</span>
+            </button>
+
+        </section>
+
+        <div
+            id="errorMessage"
+            class="error-message hidden"
+            role="alert"
+        ></div>
+
+        <section id="loadingState" class="loading-card hidden">
+            <div class="spinner"></div>
+
+            <div>
+                <strong>Analyzing X-ray</strong>
+                <span>Preparing model results…</span>
+            </div>
+        </section>
+
+        <section id="resultsSection" class="results-section hidden">
+
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">ANALYSIS RESULT</p>
+                    <h2>Model findings</h2>
+                </div>
+
+                <div
+                    id="resultSummaryBadge"
+                    class="result-summary-badge"
+                ></div>
+            </div>
+
+            <div class="visual-grid">
+
+                <article class="image-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <span class="panel-kicker">ORIGINAL</span>
+                            <h3>Uploaded X-ray</h3>
+                        </div>
+                    </div>
+
+                    <div class="xray-frame">
+                        <img
+                            id="xrayPreview"
+                            alt="Uploaded chest X-ray"
+                        >
+
+                    </div>
+                </article>
+
+                <article class="image-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <span class="panel-kicker">EXPLAINABILITY</span>
+                            <h3>AI attention map</h3>
+                        </div>
+                    </div>
+
+                    <div id="gradcamEmpty" class="gradcam-empty">
+                        <div class="gradcam-symbol">◎</div>
+
+                        <strong id="gradcamEmptyTitle">Selected finding explanation</strong>
+
+                        <span id="gradcamEmptyCopy">
+                            The top flagged finding will be selected first.
+                            When the Grad-CAM service is connected, its attention map
+                            will appear here automatically or when another finding is selected.
+                        </span>
+                    </div>
+
+                    <div id="gradcamResult" class="gradcam-result hidden">
+                        <img
+                            id="gradcamImage"
+                            alt="Grad-CAM attention map"
+                        >
+                    </div>
+
+                    <p class="gradcam-note">
+                        Highlighted regions indicate image areas that influenced
+                        the model's prediction. They do not represent confirmed
+                        disease location.
+                    </p>
+                </article>
+
+            </div>
+
+            <button
+                id="downloadReportButton"
+                class="download-report-button"
+                type="button"
+            >
+                <span>
+                    <strong>Download Summary Report</strong>
+                    <small>Export the current analysis summary</small>
+                </span>
+
+                <span aria-hidden="true">↓</span>
+            </button>
+
+            <section class="findings-block">
+                <div class="section-heading compact-heading">
+                    <div>
+                        <p class="eyebrow">FLAGGED BY THE MODEL</p>
+                        <h2>Findings to review</h2>
+                    </div>
+                </div>
+
+                <div
+                    id="flaggedFindings"
+                    class="findings-grid"
+                ></div>
+
+                <div
+                    id="noFindingCard"
+                    class="no-finding-card hidden"
+                >
+                    <div class="no-finding-icon">✓</div>
+
+                    <div>
+                        <h3>No findings were flagged by the model</h3>
+                        <p>
+                            None of the 14 pathology scores exceeded their
+                            model-specific decision thresholds.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section
+                id="explanationSection"
+                class="explanation-section hidden"
+            >
+                <div>
+                    <span class="field-label">Finding shown in AI attention map</span>
+                    <select
+                        id="findingSelect"
+                        class="finding-select"
+                    ></select>
+                </div>
+
+                <button
+                    id="explainButton"
+                    type="button"
+                    class="secondary-button"
+                >
+                    Update Explanation
+                </button>
+            </section>
+
+            <section class="all-scores-section">
+                <button
+                    id="toggleScoresButton"
+                    class="accordion-button"
+                    type="button"
+                    aria-expanded="false"
+                >
+                    <div class="accordion-copy">
+                        <strong id="toggleScoresLabel">View all 14 model scores</strong>
+                        <span>Sorted from highest to lowest score</span>
+                    </div>
+
+                    <span id="toggleScoresIcon" class="accordion-icon">⌄</span>
+                </button>
+
+                <div
+                    id="allScoresContainer"
+                    class="all-scores-container hidden"
+                >
+                    <div class="scores-table-wrapper">
+
+                        <table class="scores-table">
+                            <thead>
+                                <tr>
+                                    <th>Finding</th>
+                                    <th>Model score</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="scoresTableBody"></tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </section>
+
+            <section class="research-notice">
+                <strong>Research & educational prototype</strong>
+                <p>
+                    Results represent model-generated probabilities and should
+                    not be interpreted as a clinical diagnosis.
+                </p>
+            </section>
+
+        </section>
+
+    </main>
+
+    <footer class="site-footer analysis-footer">
+        <span>Samsung Innovation Campus · Misk</span>
+        <span>Team Core · Explainable Multi-Label Chest X-Ray System</span>
+    </footer>
+
+    <div id="devOverlay" class="dev-overlay hidden"></div>
+
+    <aside
+        id="devDrawer"
+        class="dev-drawer"
+        aria-hidden="true"
+    >
+        <div class="dev-drawer-header">
+            <div>
+                <span class="panel-kicker">INTERNAL</span>
+                <h2>Developer Diagnostics</h2>
+            </div>
+
+            <button
+                id="closeDevButton"
+                class="drawer-close-button"
+                type="button"
+                aria-label="Close developer diagnostics"
+            >
+                ×
+            </button>
+        </div>
+
+        <div class="dev-content">
+
+            <div class="dev-status-grid">
+                <div>
+                    <span>Frontend mode</span>
+                    <strong id="devMode">—</strong>
+                </div>
+
+                <div>
+                    <span>API status</span>
+                    <strong id="devApiStatus">Not checked</strong>
+                </div>
+
+                <div>
+                    <span>Model</span>
+                    <strong id="devModel">—</strong>
+                </div>
+
+                <div>
+                    <span>Model version</span>
+                    <strong id="devModelVersion">—</strong>
+                </div>
+            </div>
+
+            <div class="dev-section">
+                <div class="dev-section-header">
+                    <h3>Prediction diagnostics</h3>
+                    <span>Sorted by model score</span>
+                </div>
+
+                <div id="devPredictionCards" class="dev-prediction-grid">
+                    <div class="dev-empty-card">
+                        Run an analysis to inspect the model response.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </aside>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/analyze.js"></script>
+
+</body>
+</html>
+
