@@ -21,7 +21,7 @@ I worked as the **XAI Specialist** for Team Core. In this repository, my contrib
 - **Class-wise localization analysis** for the 8 pathologies with bounding-box annotations
 - **Representative strong, moderate, and weak examples**
 - **Reusable Grad-CAM / IoBB code** in `src/gradcam.py`
-- **Technical documentation** in `[Grad-CAM / IoBB Summary](docs/gradcam_iobb_summary.md)`
+- **Technical documentation** in [Grad-CAM / IoBB Summary](docs/gradcam_iobb_summary.md)
 
 My main notebook is:
 
