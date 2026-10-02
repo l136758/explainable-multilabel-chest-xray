@@ -5,3 +5,6 @@ Pillow
 torch
 torchvision
 matplotlib
+fastapi
+uvicorn
+python-multipart
