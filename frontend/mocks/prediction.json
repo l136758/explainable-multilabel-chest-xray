@@ -1,0 +1,90 @@
+{
+    "model_version": "convnext_tiny_320_bce_v1",
+    "predictions": [
+        {
+            "name": "Atelectasis",
+            "probability": 0.21,
+            "threshold": 0.34,
+            "positive": false
+        },
+        {
+            "name": "Consolidation",
+            "probability": 0.09,
+            "threshold": 0.12,
+            "positive": false
+        },
+        {
+            "name": "Infiltration",
+            "probability": 0.15,
+            "threshold": 0.17,
+            "positive": false
+        },
+        {
+            "name": "Pneumothorax",
+            "probability": 0.11,
+            "threshold": 0.29,
+            "positive": false
+        },
+        {
+            "name": "Edema",
+            "probability": 0.24,
+            "threshold": 0.18,
+            "positive": true
+        },
+        {
+            "name": "Emphysema",
+            "probability": 0.18,
+            "threshold": 0.3,
+            "positive": false
+        },
+        {
+            "name": "Fibrosis",
+            "probability": 0.08,
+            "threshold": 0.18,
+            "positive": false
+        },
+        {
+            "name": "Effusion",
+            "probability": 0.71,
+            "threshold": 0.22,
+            "positive": true
+        },
+        {
+            "name": "Pneumonia",
+            "probability": 0.03,
+            "threshold": 0.05,
+            "positive": false
+        },
+        {
+            "name": "Pleural_Thickening",
+            "probability": 0.11,
+            "threshold": 0.23,
+            "positive": false
+        },
+        {
+            "name": "Cardiomegaly",
+            "probability": 0.82,
+            "threshold": 0.67,
+            "positive": true
+        },
+        {
+            "name": "Nodule",
+            "probability": 0.13,
+            "threshold": 0.2,
+            "positive": false
+        },
+        {
+            "name": "Mass",
+            "probability": 0.08,
+            "threshold": 0.19,
+            "positive": false
+        },
+        {
+            "name": "Hernia",
+            "probability": 0.09,
+            "threshold": 0.5,
+            "positive": false
+        }
+    ],
+    "no_finding": false
+}
