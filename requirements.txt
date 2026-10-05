@@ -2,8 +2,8 @@ numpy
 pandas
 scikit-learn
 Pillow
-torch
-torchvision
+torch>=2.0        # results produced with torch 2.10 on Kaggle (Tesla T4)
+torchvision>=0.15 # needs convnext_tiny
 matplotlib
 fastapi
 uvicorn

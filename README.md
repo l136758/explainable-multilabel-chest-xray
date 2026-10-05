@@ -15,11 +15,11 @@ I worked as the **XAI Specialist** for Team Core. In this repository, my contrib
 - **Grad-CAM integration** with the final ConvNeXt-Tiny 320×320 BCE model
 - **Target-layer selection** using `model.features[-1][-1].block[0]`
 - **Class-specific heatmap generation** from raw class logits
-- **Heatmap threshold tuning** on the dedicated `loc_tune` split
+- **Heatmap threshold tuning** on the dedicated `loc_tune` split, selected by mean IoU
 - **Frozen-threshold evaluation** on the held-out `loc_report` split
-- **IoBB localization evaluation** against radiologist-drawn bounding boxes
-- **Class-wise localization analysis** for the 8 pathologies with bounding-box annotations
-- **Representative strong, moderate, and weak examples**
+- **IoBB localization evaluation** against radiologist-drawn bounding boxes, reported with IoU, box size, and a centre-box control
+- **Class-wise localization analysis** for all 8 pathologies with bounding-box annotations
+- **Representative examples** selected by class mean, not hand-picked
 - **Reusable Grad-CAM / IoBB code** in `src/gradcam.py`
 - **Technical documentation** in [Grad-CAM / IoBB Summary](docs/gradcam_iobb_summary.md)
 
@@ -41,17 +41,17 @@ Chest X-ray classification can return model probabilities, but probabilities alo
 
 This project combines multi-label classification with Grad-CAM explainability so that a selected pathology prediction can be paired with a visual attention map.
 
-My part of the project focused on evaluating whether those Grad-CAM regions actually overlapped radiologist-annotated pathology regions rather than relying only on visual inspection.
+My part of the project focused on checking whether those Grad-CAM regions actually overlap radiologist-annotated pathology regions, instead of relying only on how the heatmaps look.
 
 ---
 
 ## Data
 
-The project uses a working subset of the NIH ChestX-ray14 dataset containing **31,077 X-rays from 11,907 patients**.
+The project uses a working subset of the [NIH ChestX-ray14](https://www.kaggle.com/datasets/nih-chest-xrays/data) dataset containing **31,077 X-rays from 11,907 patients**.
 
 The classification subset contains 25,895 images, while the full working set also includes the dedicated localization splits.
 
-Splits are defined at the **patient level** to avoid patient leakage.
+Splits are defined at the **patient level** to avoid patient leakage. All pairwise split combinations share zero patients. Patients with radiologist-drawn bounding boxes are held out of the classification splits entirely and used only for Grad-CAM evaluation, split evenly so the heatmap threshold is never selected on the data it is reported on.
 
 | Split | Images | Patients | Purpose |
 |---|---:|---:|---|
@@ -67,6 +67,12 @@ Atelectasis, Consolidation, Infiltration, Pneumothorax, Edema, Emphysema, Fibros
 
 `No Finding` is not a 15th model output. It is derived when no pathology probability crosses its class-specific threshold.
 
+Kaggle inputs used by the notebooks:
+
+- Images: [`nih-chest-xrays/data`](https://www.kaggle.com/datasets/nih-chest-xrays/data)
+- Splits and bounding boxes: `iwmm10/chestxray-capstone-splits`
+- ConvNeXt-Tiny checkpoint: output of the team notebook `rabehalmutire/01-convnext-training`
+
 ---
 
 ## Model
@@ -75,9 +81,11 @@ The team evaluated three CNN architectures on the same patient-level classificat
 
 | Model | Input | Test Macro AUROC |
 |---|---:|---:|
-| ResNet50 | 224×224 | ~0.783 |
-| DenseNet-121 | 224×224 | ~0.796 |
+| ResNet50 | 224×224 | 0.7826 |
+| DenseNet-121 | 224×224 | 0.7948 |
 | **ConvNeXt-Tiny** | **320×320** | **0.8158** |
+
+ConvNeXt-Tiny was also trained at a higher resolution, so part of the gap may come from the input size and not only the architecture.
 
 The final model is **ConvNeXt-Tiny** with:
 
@@ -89,18 +97,12 @@ The final model is **ConvNeXt-Tiny** with:
 | Optimizer | AdamW |
 | Decision thresholds | Tuned per class on validation |
 | Early stopping | Used during training |
-| Final Test Macro AUROC | **0.8158** |
-| Macro F1 @ 0.50 | 0.3034 |
-| Macro F1 @ tuned thresholds | **0.4236** |
-| Macro ECE | **0.0258** |
 
 The final ConvNeXt-Tiny checkpoint is not committed to GitHub because of file size.
 
 ---
 
 ## Classification results
-
-The final ConvNeXt-Tiny model achieved:
 
 | Metric | Value |
 |---|---:|
@@ -111,7 +113,7 @@ The final ConvNeXt-Tiny model achieved:
 
 Threshold tuning improved macro F1 substantially compared with using a fixed 0.50 cutoff for every pathology.
 
-The repository also contains team-level classification outputs and threshold files under `results/`.
+Per-class AUROC, the BCE vs focal-loss comparison, and the sex / age / view-position robustness analysis are in the team's [ConvNeXt experiment summary](https://github.com/ABDULLHALSALHI/team-core-chest-xray/blob/main/docs/convnext_experiment_summary.md). Classification outputs and threshold files are under `results/`.
 
 ---
 
@@ -119,82 +121,89 @@ The repository also contains team-level classification outputs and threshold fil
 
 Grad-CAM was applied to the final ConvNeXt-Tiny model to generate class-specific heatmaps.
 
-The target layer used in my implementation is:
+The target layer is `model.features[-1][-1].block[0]`, the depthwise convolution of the last block in the last ConvNeXt stage. Gradients are taken from the raw class logit.
 
-`model.features[-1][-1].block[0]`
+Each heatmap is thresholded at `T`, and the predicted box is the rectangle around the pixels that pass.
 
-The Grad-CAM procedure stores forward activations and backward gradients, computes gradient-based channel weights, applies ReLU, normalizes the CAM, and resizes the heatmap to the original image size.
+### Metrics
+
+- **IoBB** = intersection area / predicted box area, as defined for ChestX-ray14 (Wang et al., 2017)
+- **IoU** = intersection area / union area
+- **Box area** = predicted box area / image area
+- **Centre control** = IoBB of a same-sized box placed at the image centre, ignoring the heatmap
+
+IoBB never gets worse when the predicted box gets smaller, so it is always reported next to IoU, box size, and the centre control.
 
 ### Threshold selection
 
-A heatmap threshold sweep was performed on `loc_tune`.
+`T` was swept from 0.05 to 0.95 on `loc_tune` and selected by **mean IoU**.
 
-The selected threshold was:
+<p align="center">
+  <img src="results/gradcam_tune_sweep.png" width="70%" alt="loc_tune threshold sweep">
+</p>
 
-**T = 0.90**
+Mean IoBB keeps rising up to `T = 0.95` while the box shrinks to about 2% of the image. Mean IoU peaks in the middle, so it gives a real optimum.
 
-It was selected on `loc_tune` only and then frozen before final evaluation on `loc_report`.
+**Selected threshold: T = 0.55**, frozen before evaluation on `loc_report`.
 
 ### Localization protocol
 
-The localization evaluation covers the 8 pathologies with available bounding-box annotations:
+The evaluation covers all 8 pathologies with bounding-box annotations:
 
-- Atelectasis
-- Cardiomegaly
-- Effusion
-- Infiltration
-- Mass
-- Nodule
-- Pneumonia
-- Pneumothorax
+Atelectasis, Cardiomegaly, Effusion, Infiltration, Mass, Nodule, Pneumonia, Pneumothorax
 
-The classifier still predicts all 14 pathologies. The 8-class limitation applies only to quantitative localization evaluation.
-
-In this implementation:
-
-**IoBB = intersection area / predicted bounding-box area**
+The annotation label `Infiltrate` is mapped to the model label `Infiltration`. The classifier still predicts all 14 pathologies. The 8-class limit applies only to localization.
 
 ### Results on `loc_report`
 
 Final evaluation included **373 image-class pairs**.
 
-| Pathology | n | Mean IoBB | IoBB ≥ 0.50 |
-|---|---:|---:|---:|
-| Cardiomegaly | 81 | **0.886** | **88.9%** |
-| Pneumonia | 53 | 0.441 | 41.5% |
-| Effusion | 44 | 0.424 | 40.9% |
-| Mass | 30 | 0.317 | 30.0% |
-| Infiltration | 41 | 0.288 | 24.4% |
-| Atelectasis | 57 | 0.257 | 22.8% |
-| Pneumothorax | 33 | 0.106 | 9.1% |
-| Nodule | 34 | 0.065 | 0.0% |
-
-Overall:
-
 | Metric | Value |
 |---|---:|
-| Mean IoBB | **0.417** |
-| IoBB ≥ 0.10 | **56.6%** |
-| IoBB ≥ 0.25 | **48.3%** |
-| IoBB ≥ 0.50 | **39.4%** |
+| Mean IoBB | **0.326** |
+| Mean IoU | **0.179** |
+| Mean box area | 23.6% of the image |
+| IoBB ≥ 0.25 | **42.1%** |
+| Centre control, IoBB ≥ 0.25 | 32.2% |
 
-Representative examples:
+| Pathology | n | Mean IoBB | Mean IoU | IoBB ≥ 0.25 | Centre ≥ 0.25 |
+|---|---:|---:|---:|---:|---:|
+| Cardiomegaly | 81 | 0.760 | 0.302 | 92.6% | 96.3% |
+| Pneumonia | 53 | 0.314 | 0.207 | 41.5% | 26.4% |
+| Effusion | 44 | 0.258 | 0.189 | 34.1% | 11.4% |
+| Mass | 30 | 0.220 | 0.153 | 33.3% | 16.7% |
+| Atelectasis | 57 | 0.187 | 0.150 | 28.1% | 5.3% |
+| Infiltration | 41 | 0.255 | 0.146 | 31.7% | 26.8% |
+| Pneumothorax | 33 | 0.075 | 0.061 | 12.1% | 12.1% |
+| Nodule | 34 | 0.060 | 0.057 | 5.9% | 0.0% |
 
-| Example | IoBB |
-|---|---:|
-| Cardiomegaly — `00014706_007.png` | **0.916** |
-| Effusion — `00028974_016.png` | **0.419** |
-| Nodule — `00015141_002.png` | **0.060** |
+What this shows:
+
+- **Effusion, Atelectasis, Mass, and Pneumonia** clearly beat the centre control, so Grad-CAM points at the right region for these classes.
+- **Cardiomegaly** has the highest IoBB, but the centre control scores about the same. The heart sits in the middle of almost every chest X-ray, so this number mostly reflects anatomy.
+- **Infiltration** is only slightly above the control.
+- **Pneumothorax** is no better than the control, and **Nodule** is almost never localized, since nodules are small and the heatmap comes from a 10×10 grid.
+
+### Representative examples
+
+Each example is the image closest to its class's mean IoBB. Red = radiologist box, blue = Grad-CAM box.
+
+| Example | IoBB | IoU |
+|---|---:|---:|
+| Cardiomegaly — `00004344_022.png` | 0.759 | 0.453 |
+| Effusion — `00028509_007.png` | 0.263 | 0.186 |
+| Nodule — `00019013_002.png` | 0.057 | 0.056 |
 
 <p align="center">
-  <img src="results/gradcam_samples/gradcam_cardiomegaly_00014706_007.png" width="31%" alt="Cardiomegaly Grad-CAM example">
-  <img src="results/gradcam_samples/gradcam_effusion_00028974_016.png" width="31%" alt="Effusion Grad-CAM example">
-  <img src="results/gradcam_samples/gradcam_nodule_00015141_002.png" width="31%" alt="Nodule Grad-CAM example">
+  <img src="results/gradcam_samples/gradcam_cardiomegaly_00004344_022.png" width="31%" alt="Cardiomegaly Grad-CAM example">
+  <img src="results/gradcam_samples/gradcam_effusion_00028509_007.png" width="31%" alt="Effusion Grad-CAM example">
+  <img src="results/gradcam_samples/gradcam_nodule_00019013_002.png" width="31%" alt="Nodule Grad-CAM example">
 </p>
 
 More details are available in:
 
 [Grad-CAM / IoBB Summary](docs/gradcam_iobb_summary.md)
+
 ---
 
 ## Serving
@@ -214,7 +223,7 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Place the model checkpoint at:
+Place the model checkpoint (from the Kaggle notebook `rabehalmutire/01-convnext-training`) at:
 
 ```text
 backend/model/convnext_tiny_320_best.pth
@@ -256,7 +265,7 @@ docs/
   gradcam_iobb_summary.md               Localization protocol and results           [my work]
 
 src/
-  gradcam.py                            Reusable Grad-CAM + IoBB code               [my work]
+  gradcam.py                            Reusable Grad-CAM, IoBB, and IoU code       [my work]
 
 backend/                                FastAPI backend                             [team]
 frontend/                               HTML/CSS/JavaScript frontend                [team]
@@ -280,7 +289,7 @@ Team Core consisted of 6 members:
 | Deema Omar Alquwaei | FastAPI backend |
 | Layan Allhidean | HTML/CSS/JavaScript frontend and API integration |
 
-Original Team Core repository:
+Team Core repository:
 
 https://github.com/ABDULLHALSALHI/team-core-chest-xray
 
@@ -296,7 +305,7 @@ The main capstone pipeline is complete:
 - final ConvNeXt-Tiny training and evaluation
 - validation-tuned decision thresholds
 - Grad-CAM explainability
-- IoBB localization evaluation
+- IoBB / IoU localization evaluation with a centre-box control
 - backend
 - frontend
 
@@ -308,7 +317,13 @@ This personal repository is organized as a portfolio version of the full Team Co
 
 - This is a research and educational prototype, not a clinically validated diagnostic system.
 - Classification and localization performance vary by pathology.
-- Quantitative localization is limited to 8 pathologies with available bounding-box annotations.
+- Quantitative localization is limited to 8 pathologies with available bounding-box annotations, with 30 to 81 examples per class.
 - Grad-CAM indicates image regions that influenced a prediction; it does not confirm disease location.
-- The Grad-CAM feature map is coarse relative to the original X-ray resolution.
+- The Grad-CAM map is a 10×10 grid, which is coarse relative to the original X-ray resolution and limits small findings like nodules.
 - External-dataset validation and expert radiologist review would be required for clinical evaluation.
+
+---
+
+## Reference
+
+Wang, X., Peng, Y., Lu, L., Lu, Z., Bagheri, M., & Summers, R. M. (2017). *ChestX-ray8: Hospital-scale chest X-ray database and benchmarks on weakly-supervised classification and localization of common thorax diseases.* CVPR.

@@ -1,0 +1,39 @@
+{
+  "architecture": "ConvNeXt-Tiny",
+  "input_size": [
+    320,
+    320
+  ],
+  "num_model_outputs": 14,
+  "checkpoint": "convnext_tiny_320_best.pth",
+  "training_experiment": "D3_ConvNeXtTiny_320_BCE",
+  "best_saved_epoch": 3,
+  "validation_macro_auroc": 0.8121,
+  "target_layer": "model.features[-1][-1].block[0]",
+  "target_layer_description": "depthwise convolution of the last block in the last ConvNeXt stage",
+  "normalization": "ImageNet mean/std",
+  "tuning_split": "loc_tune",
+  "report_split": "loc_report",
+  "n_tune_image_class_pairs": 376,
+  "n_report_image_class_pairs": 373,
+  "annotated_classes": [
+    "Atelectasis",
+    "Cardiomegaly",
+    "Effusion",
+    "Infiltration",
+    "Mass",
+    "Nodule",
+    "Pneumonia",
+    "Pneumothorax"
+  ],
+  "label_mapping": {
+    "Infiltrate": "Infiltration"
+  },
+  "threshold_sweep": "0.05 to 0.95, step 0.05",
+  "final_heatmap_threshold": 0.55,
+  "threshold_selection_criterion": "highest mean IoU on loc_tune",
+  "iobb_definition": "intersection area / predicted bounding-box area (Wang et al., 2017)",
+  "iou_definition": "intersection area / union area",
+  "centre_control": "same-size box placed at the image centre, ignoring the heatmap",
+  "multiple_gt_boxes": "best overlap used"
+}
