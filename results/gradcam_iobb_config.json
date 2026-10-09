@@ -10,7 +10,7 @@
   "best_saved_epoch": 3,
   "validation_macro_auroc": 0.8121,
   "target_layer": "model.features[-1][-1].block[0]",
-  "target_layer_description": "final depthwise convolution in the last ConvNeXt block",
+  "target_layer_description": "depthwise convolution of the last block in the last ConvNeXt stage",
   "normalization": "ImageNet mean/std",
   "tuning_split": "loc_tune",
   "report_split": "loc_report",
@@ -29,8 +29,11 @@
   "label_mapping": {
     "Infiltrate": "Infiltration"
   },
-  "final_heatmap_threshold": 0.9,
-  "threshold_selection_criterion": "highest Mean IoBB on loc_tune",
-  "iobb_definition": "intersection area / predicted bounding-box area",
-  "multiple_gt_boxes": "best IoBB overlap used"
+  "threshold_sweep": "0.05 to 0.95, step 0.05",
+  "final_heatmap_threshold": 0.55,
+  "threshold_selection_criterion": "highest mean IoU on loc_tune",
+  "iobb_definition": "intersection area / predicted bounding-box area (Wang et al., 2017)",
+  "iou_definition": "intersection area / union area",
+  "centre_control": "same-size box placed at the image centre, ignoring the heatmap",
+  "multiple_gt_boxes": "best overlap used"
 }

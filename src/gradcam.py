@@ -43,6 +43,7 @@ class GradCAM:
 
     def generate(self, image: Image.Image, target_class: int) -> np.ndarray:
         """Generate a normalized Grad-CAM heatmap for one target class."""
+        image = image.convert("RGB")
         input_tensor = self.eval_transform(image).unsqueeze(0).to(self.device)
 
         self.model.zero_grad()
@@ -134,3 +135,35 @@ def calculate_iobb(pred_bbox: Optional[BBox], gt_bbox: BBox) -> float:
     pred_area = pred_w * pred_h
 
     return intersection_area / pred_area if pred_area > 0 else 0.0
+
+
+def calculate_iou(pred_bbox: Optional[BBox], gt_bbox: BBox) -> float:
+    """Standard intersection over union of the two boxes."""
+    if pred_bbox is None:
+        return 0.0
+
+    px, py, pw, ph = pred_bbox
+    gx, gy, gw, gh = gt_bbox
+
+    inter_w = max(0, min(px + pw, gx + gw) - max(px, gx))
+    inter_h = max(0, min(py + ph, gy + gh) - max(py, gy))
+
+    intersection_area = inter_w * inter_h
+    union_area = pw * ph + gw * gh - intersection_area
+
+    return intersection_area / union_area if union_area > 0 else 0.0
+
+
+def centre_box(pred_bbox: Optional[BBox], image_size: Tuple[int, int]) -> Optional[BBox]:
+    """Control box: same size as the Grad-CAM box, placed at the image centre.
+
+    It ignores the heatmap, so Grad-CAM only shows real localization
+    when it scores better than this box.
+    """
+    if pred_bbox is None:
+        return None
+
+    W, H = image_size
+    _, _, w, h = pred_bbox
+
+    return ((W - w) / 2, (H - h) / 2, w, h)
